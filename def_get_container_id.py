@@ -20,7 +20,7 @@ def get_session_id(exp_container_id, letter):
     sessiontype=['three_session_'+str(letter)]
     session_data=pd.DataFrame(boc.get_ophys_experiments(experiment_container_ids=[exp_container_id], session_types=sessiontype))
     session_id=session_data['id'][0]
-    return(session_id)
+    return(session_id, session_data)
 
 # In[]
 #this section is a testing section. for cell_specimen_id  517510587, 
