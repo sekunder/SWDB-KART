@@ -25,7 +25,8 @@ def open_h5_file(cell_specimen_id, drive_path, letter):
     f.close()
     mean_sweep_response=pd.read_hdf(path, 'analysis/mean_sweep_response_ns')
     sweep_response = pd.read_hdf(path, 'analysis/sweep_response_ns')
-    return(response, mean_sweep_response, sweep_response, exp_container_id, session_id, session_data)
+    stim_table_ns = pd.read_hdf(path, 'analysis/stim_table_ns')
+    return(response, mean_sweep_response, sweep_response, exp_container_id, session_id, session_data, stim_table_ns)
 
 def hist_single_cell(cell_specimen_id, drive_path, letter, bins):
     response, mean_sweep_response, sweep_response, exp_container_id, session_id, session_data = open_h5_file(cell_specimen_id, drive_path, letter)
