@@ -1,1 +1,1 @@
-from .main import BOC_init
+from .main import *
