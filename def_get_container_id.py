@@ -34,7 +34,6 @@ def get_session_id(exp_container_id, letter):
     return(session_id)
 
     
-    
 if __name__ == '__main__' :    
     print(get_container_id(517510587))
     print(get_session_id(exp_container_id, 'B'))
