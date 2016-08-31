@@ -30,15 +30,16 @@ def get_session_id(exp_container_id, letter):
     #exp_cont_id = str(exp_container_id)
     session_data=pd.DataFrame(boc.get_ophys_experiments(experiment_container_ids=[exp_container_id], session_types=sessiontype))
     #exp_cont_info = boc.get_experiment_containers('id'=[exp_cont_id])
-    id 
-    return(session_data)
+    session_id=session_data['id'][0]
+    return(session_id)
+
     
     
 if __name__ == '__main__' :    
     print(get_container_id(517510587))
     print(get_session_id(exp_container_id, 'B'))
 # this should go elsewhere - like in the script to run the data. 
-selectivity_S_df = pd.read_csv(os.path.join(drive_path, 'image_selectivity_dataframe.csv'), index_col=0)
+#selectivity_S_df = pd.read_csv(os.path.join(drive_path, 'image_selectivity_dataframe.csv'), index_col=0)
     
 # In[]
 #help(boc.get_ophys_experiments)
