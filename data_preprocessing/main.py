@@ -33,6 +33,8 @@ def BOC_init(stimuli_to_use={
 		}
 ):
 	""""Returns a BrainObservatoryCache initialized using the data on the external harddrives provided by the Allen Institute
+Example usage:
+	boc, specimens_with_selectivity_S, VISp_cells_with_numbers = BOC_init()
 
 Input:
 stimuli_stimuli_to_use : Which stimuli we are interested in. By default, this is
