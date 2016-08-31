@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import os
 import sys
+import h5py
 from allensdk.core.brain_observatory_cache import BrainObservatoryCache
 
 
@@ -90,6 +91,28 @@ Output:
 		VISp_cells_with_numbers = VISp_cells_with_numbers[np.isnan(VISp_cells_with_numbers[col_name]) == False]
 
 	return boc, specimens_with_selectivity_S, VISp_cells_with_numbers
+
+def get_sweep_responses_ns(expt_ids,analysis_directory = "BrainObservatory/ophys_analysis/", session = "B"):
+	"""Reads cell sweep response from the h5 files on the external harddrive
+Input:
+	expt_ids : list of experiments to get responses for.
+
+Output:
+	sweep_responses : a dictionary with experiment ids as keys and sweep responses as values
+	mean_sweep_responses : same as above, but with mean sweep responses."""
+	# The dynamic brain database is on an external hard drive.
+	drive_path = '/Volumes/Brain2016'
+	sweep_responses = {}
+	mean_sweep_responses = {}
+	if sys.platform.startswith('w'):
+		drive_path = 'd:'
+	for e_id in expt_ids:
+		path = os.path.join(drive_path,analysis_directory,str(e_id) + '_three_session_' + session + '_analysis.h5')
+		# f = h5py.File(path)
+		sweep_responses[e_id] = pd.read_hdf(path, 'analysis/sweep_response_ns')
+		mean_sweep_responses[e_id] = pd.read_hdf((path, 'analysis/mean_sweep_responses_ns'))
+	return sweep_responses, mean_sweep_responses
+
 
 # Things I will want eventually:
 # 1. A dataframe with columns for...
