@@ -61,5 +61,5 @@ discard_nan = [
 ]
 VISp_cells_with_numbers = specimens_with_selectivity_S[specimens_with_selectivity_S.area == 'VISp']
 for col_name in discard_nan:
-	VISp_cells_with_numbers = VISp_cells_with_numbers[not np.isnan(VISp_cells_with_numbers[col_name])]
+	VISp_cells_with_numbers = VISp_cells_with_numbers[np.isnan(VISp_cells_with_numbers[col_name]) == False]
 
