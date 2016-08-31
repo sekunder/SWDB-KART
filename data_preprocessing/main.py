@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import sys
 import h5py
+import matplotlib.pyplot as plt
 from allensdk.core.brain_observatory_cache import BrainObservatoryCache
 
 
@@ -113,50 +114,41 @@ Output:
 		mean_sweep_responses[e_id] = pd.read_hdf((path, 'analysis/mean_sweep_responses_ns'))
 	return sweep_responses, mean_sweep_responses
 
+def get_container_id(cell_specimen_id, selectivity_S_df=None):
+    """This function takes a cell specimen id and returns the experiment container it is in"""
+    if selectivity_S_df == None:
+        _,selectivity_S_df,_ = BOC_init()
+    cell_record=selectivity_S_df.loc[selectivity_S_df['cell_specimen_id']==cell_specimen_id]
+    exp_container_id=cell_record.iloc[0]['experiment_container_id']
+    return(exp_container_id)
 
-# Things I will want eventually:
-# 1. A dataframe with columns for...
-#	a. all the identifiers from the brain observatory
-#	b. the preferred directions from the grating and place field stimuli
-# 2. A numpy array which is N_neurons x N_timesamples, where entry i,j is 1 or 0 based on whether
-#	 the neuron was "firing" at that point (how we decide that we'll get to later
+def get_session_id(exp_container_id, letter, boc=None):
+    """This function takes a container id and returns the session id for letter = A,B, or C.""" 
+    if boc==None:
+        boc,_,_ = BOC_init()
+    sessiontype=['three_session_'+str(letter)]
+    session_data=pd.DataFrame(boc.get_ophys_experiments(experiment_container_ids=[exp_container_id], session_types=sessiontype))
+    session_id=session_data['id'][0]
+    return(session_id, session_data)
+    
+def open_h5_file(cell_specimen_id, drive_path, letter):
+    exp_container_id = get_container_id(cell_specimen_id)
+    session_id, session_data = get_session_id(exp_container_id, letter)
+    path = drive_path + '/BrainObservatory/ophys_analysis/' + str(session_id) + '_three_session_B_analysis.h5'
+    f = h5py.File(path, 'r')
+    response = f['analysis']['response_ns'].value
+    f.close()
+    mean_sweep_response=pd.read_hdf(path, 'analysis/mean_sweep_response_ns')
+    sweep_response = pd.read_hdf(path, 'analysis/sweep_response_ns')
+    stim_table_ns = pd.read_hdf(path, 'analysis/stim_table_ns')
+    return(response, mean_sweep_response, sweep_response, exp_container_id, session_id, session_data, stim_table_ns)
 
-# Data frames first:
-# expt_containers_df = pd.DataFrame(expt_containers)
-
-# The stimuli I'm interested in are basically everything except the natural movie and natural scenes
-# If we want other stimuli, add them here.
-# non_movie_stimuli = ['drifting_gratings', 'locally_sparse_noise', 'spontaneous', 'static_gratings']
-
-# all_expts_df = pd.DataFrame(boc.get_ophys_experiments(stimuli=non_movie_stimuli))
-# this has headers:
-# age_days	cre_line	experiment_container_id	id	imaging_depth	session_type	targeted_structure
-
-# seems like I can use get_cell_speciments to get everything I'm after
-# specimens_df = pd.DataFrame(boc.get_cell_specimens(experiment_container_ids=all_expts_df.experiment_container_id.values))
-# this has headers:
-# area	cell_specimen_id	dsi_dg	experiment_container_id	imaging_depth	osi_dg	osi_sg	p_dg	p_ns	p_sg
-# pref_dir_dg	pref_image_ns	pref_ori_sg	pref_phase_sg	pref_sf_sg	pref_tf_dg	time_to_peak_ns	time_to_peak_sg
-# tld1_id	tld1_name	tld2_id	tld2_name	tlr1_id	tlr1_name
-
-# There's also a handy bit of data from Saskia, in the form of a measurement called S. See
-# Decoding Visual Inputs From Multiple Neurons in the Human Temporal Lobe, J. Neurophys 2007, by Quiroga et al
-
-
-# selectivity_S_df = pd.read_csv(os.path.join(drive_path, '/BrainObservatory/image_selectivity_dataframe.csv'), index_col=0)
-# selectivity_S_df = selectivity_S_df[['cell_specimen_id', 'selectivity_ns']]
-
-# specimens_with_selectivity_S = specimens_df.merge(selectivity_S_df, how='outer', on='cell_specimen_id')
-
-# # This is all cells in VISp that have a value for the specified parameters (i.e not NaN)
-# # Discards rows NaN in the columns specified below.
-# discard_nan = [
-# 	'selectivity_ns',
-# 	'osi_sg',
-# 	'osi_dg',
-# 	'time_to_peak_ns',
-# 	'time_to_peak_sg',
-# ]
-# VISp_cells_with_numbers = specimens_with_selectivity_S[specimens_with_selectivity_S.area == 'VISp']
-# for col_name in discard_nan:
-# 	VISp_cells_with_numbers = VISp_cells_with_numbers[np.isnan(VISp_cells_with_numbers[col_name]) == False]
+def hist_single_cell(cell_specimen_id, drive_path, letter, bins, boc=None):
+    if boc==None:
+        boc,_,_ = BOC_init()    
+    response, mean_sweep_response, sweep_response, exp_container_id, session_id, session_data = open_h5_file(cell_specimen_id, drive_path, letter)
+    data_set = boc.get_ophys_experiment_data(ophys_experiment_id = session_data.id.values[0])
+    cell_specimen_ids = data_set.get_cell_specimen_ids()    
+    cell_idx=np.where(cell_specimen_ids==cell_specimen_id)[0][0]
+    cell_series = mean_sweep_response.iloc[:, cell_idx]     
+    plt.hist(cell_series, bins=bins)
