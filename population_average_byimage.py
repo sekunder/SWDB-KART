@@ -75,6 +75,15 @@ np.save('mean_of_mean_population', list_of_dicts)
 #make a plot for each structure
 
 import matplotlib.pyplot as plt
-
+plt.rcParams.update({'font.size': 30})  
+tuple_list = [(i, j) for i in range(2) for j in range(2)]
+fig, axes = plt.subplots(2,2)
+for t, d, in zip(tuple_list, list_of_dicts):
+    traces=d['list_of_arrays'].T
+    axes[t[0], t[1]].plot(traces + 2 * np.arange(traces.shape[1]).reshape(1,traces.shape[1]))
+    axes[t[0], t[1]].set(ylabel = 'Mean Sweep Response', xlabel='Image Number', title=d['area'])
+#fig.set(title = 'Mean of Mean Population Response')
+plt.suptitle('Mean of Mean Population Response')
+  
 # In[]
 #do some statistics
