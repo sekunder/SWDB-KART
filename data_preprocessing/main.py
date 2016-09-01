@@ -143,6 +143,8 @@ def open_h5_file(cell_specimen_id, drive_path, letter):
     stim_table_ns = pd.read_hdf(path, 'analysis/stim_table_ns')
     return(response, mean_sweep_response, sweep_response, exp_container_id, session_id, session_data, stim_table_ns)
 
+
+
 def hist_single_cell(cell_specimen_id, drive_path, letter, bins, boc=None):
     if boc==None:
         boc,_,_ = BOC_init()    
