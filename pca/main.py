@@ -14,14 +14,15 @@ Output:
 	Y : Projected, scaled data.
 	cov_mat : Covariance matrix of the scaled data
 	eig_pairs : a list of tuples. Each tuple is of the form (eigen value, eigen vector), and they are sorted high to low"""
-	if ndims > X.shape[1]:
-		ndims = X.shape[1]
+	original_dims = X.shape[1];
+	if ndims > original_dims:
+		ndims = original_dims
 	#TODO Check what this scaler is actually doing; it might be scaling columns independently
 	X_std = StandardScaler().fit_transform(X)
 	cov_mat = np.cov(X.T)
 	eig_vals, eig_vecs = np.linalg.eig(cov_mat)
 	eig_pairs = [(np.abs(eig_vals[i]), eig_vecs[:, i]) for i in range(len(eig_vals))]
 	eig_pairs.sort(key=lambda x: x[0], reverse=True)
-	W = np.hstack((eig_pairs[i][1] for i in range(ndims)))
+	W = np.hstack((eig_pairs[i][1].reshape(original_dims,1) for i in range(ndims)))
 	Y = X_std.dot(W)
 	return Y, cov_mat, eig_pairs
