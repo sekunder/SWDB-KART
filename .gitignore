@@ -1,2 +1,12 @@
 
 *.pyc
+*/*.pyc
+
+data_preprocessing/__init__.pyc
+
+
+data_preprocessing/__init__.pyc
+
+data_preprocessing/main.pyc
+
+data_preprocessing/__init__.pyc
