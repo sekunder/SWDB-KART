@@ -159,7 +159,8 @@ def save_matrix_as_image(m, filename, save_path='', file_extension='png', color_
 	ax.set_axis_off()
 	fig.add_axes(ax)
 	ax.imshow(m, aspect='auto', cmap=color_map)
-	fig.savefig(os.path.join(save_path,filename + file_extension))
+	fig.savefig(os.path.join(save_path,filename + '.' + file_extension))
+	fig.clear()
 
 def gaussian_blur(img,sigma=19.6):
 	"""Applies a gaussian blur to given image and returns the result. 
