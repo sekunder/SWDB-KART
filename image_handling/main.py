@@ -46,8 +46,7 @@ def get_ns_response_arrays(data_set,responsive_cells,stim_table):
 
 
 def get_calcium_triggered_image_stack(responsive_cell_idx, cell_specimen_id, ns, images, images_arr, traces_arr, thresh=0.5):
-	# TODO documentation
-	""" Inputs: 
+	""" Inputs:
              responsive_cell_idx = index of cell in list reponsive_cells (ex: 10)
              cell_specimen_id = id of cell corresponding to responsive_cell_idx (ex: 517488841)
              ns = NaturalScenes data_set object
@@ -78,7 +77,7 @@ def get_calcium_triggered_image_stack(responsive_cell_idx, cell_specimen_id, ns,
 	t_int_ref = t_int - ns.interlength
 
 	thresh_inds = np.where(traces_arr[responsive_cell_idx, :] >= thresh)[0]
-	thresh_inds = thresh_inds - 6
+	thresh_inds -= 6
 	thresh_vals = traces_arr[responsive_cell_idx][thresh_inds]
 	thresh_images = images_arr[thresh_inds]
 	n_images = len(np.unique(thresh_images))
@@ -102,7 +101,7 @@ def plot_ns_summary(cell_specimen_id, responsive_cell_id, ns, images, frames_arr
 	""" For a given cell, plot a summary figure containing the mean response to the preferred condition, the preferred image,
          the mean response to all conditions, and the (weighted) mean of all images that were present prior to a response. 
          """
-	cell_idx, pref_scene, img_stack, thresh_vals, n_images, condition_mean, t, t_int, t_int_ref
+	cell_idx, pref_scene, img_stack, thresh_vals, n_images, condition_mean, t, t_int, t_int_ref\
 		= get_calcium_triggered_image_stack(cell_specimen_id, responsive_cell_id, ns, images, images_arr,traces_arr,thresh)
 	if weighted:
 		mean_img = mean_image(img_stack, weights=thresh_vals)
