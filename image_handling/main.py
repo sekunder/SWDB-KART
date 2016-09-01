@@ -3,15 +3,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage.filters import gaussian_filter
 
-def get_responsive_cells(ns,cutoff=5):
-	"""Return cells from the given NS object that have peak response greater than 5%"""
-	#TODO documentation
-	responsive_cells = ns.peak[ns.peak.peak_dff_ns >= 5].cell_specimen_id.values
+def get_responsive_cells(ns,thresh=0.5):
+	"""Return cells from the given NS object that have mean response to preferred condition greater than some threshold"""
+	responsive_cells = ns.peak[ns.peak.peak_dff_ns >= thresh].cell_specimen_id.values
 	return responsive_cells
 
 
 def get_ns_response_arrays(data_set,responsive_cells,stim_table):
-	# TODO documentation
+	"""Returns arrays of imaging frames, stimulus frames, and dF/F trace values for 
+         the frames during the experiment_session where natural scenes were shown. Specifically: 
+         frames_arr: indices of frames during the experiment when natural scenes were shown, 
+                     created using stim_table.start and stim_table.end times
+         images_arr: natural_scenes image id for frames when natural scenes were shown, 
+                     created using stim_table.frame values 
+         traces_arr: dF/F value for frames during the experiment when natural scenes were shown,
+                     for cells in responsive_cells. 
+         
+         all arrays should have the same length """
 	timestamps,traces = data_set.get_dff_traces(cell_specimen_ids=responsive_cells)
 
 	frames_arr = np.empty(0)
@@ -37,14 +45,31 @@ def get_ns_response_arrays(data_set,responsive_cells,stim_table):
 	return frames_arr, images_arr, traces_arr
 
 
-def get_calcium_triggered_image_stack(cell_specimen_id, responsive_cell_id, ns, images, images_arr,traces_arr,thresh=0.5):
+def get_calcium_triggered_image_stack(responsive_cell_idx, cell_specimen_id, ns, images, images_arr, traces_arr, thresh=0.5):
 	# TODO documentation
-	"""Returns a stack of images that seem to trigger responses, based on calcium fluorescence. Also returns a lot of other stuff."""
+	""" Inputs: 
+             responsive_cell_idx = index of cell in list reponsive_cells (ex: 10)
+             cell_specimen_id = id of cell corresponding to responsive_cell_idx (ex: 517488841)
+             ns = NaturalScenes data_set object
+             images = array of natural_scenes from data_set.get_stimulus_template('natural_scenes')
+             images_arr = array of image ids for every frame where natural_scenes were shown
+             traces_arr = array of dF/F values for every frame where natural_scenes were shown, for every cell in responsive_cells
+             thresh = threshold dF/F value used to identify cell responses
+        Returns: 
+            cell_idx = index of cell_specimen_id 
+            pref_scene = preferred image for this cell, from ns.response array
+            img_stack = stack of images that were present 6 frames prior to a repsonse
+            thresh_vals = values of dF/F trace where response was > threshold
+            n_image = number of images that were present when the cell responded > threshold 
+            condition_mean = average trace across all sweeps of the preferred condition for this cell
+            t = array of frames corresponding to condition_mean trace
+            t_int = array of frames for condition_mean trace in increments of 6 frames, used for plotting
+            t_int_ref = array of frames for condition_mean trace in increments of 6 frames, referenced to stimulus onset time, used for plotting
+    """
 	cell_idx = np.where(ns.cell_id == cell_specimen_id)[0][0]
 
 	pref_scene = ns.peak[ns.peak.cell_specimen_id == cell_specimen_id].scene_ns.values[0]
 	pref_scene_sweeps = ns.stim_table[ns.stim_table.frame == pref_scene].index.values
-	#	 cell_idx = data_set.get_cell_specimen_indices([cell])[0]
 
 	condition_mean = ns.sweep_response[str(cell_idx)].iloc[pref_scene_sweeps].mean()
 	frames = ns.sweeplength + ns.interlength * 2
@@ -52,9 +77,9 @@ def get_calcium_triggered_image_stack(cell_specimen_id, responsive_cell_id, ns, 
 	t_int = np.arange(0, frames, 6)
 	t_int_ref = t_int - ns.interlength
 
-	thresh_inds = np.where(traces_arr[responsive_cell_id, :] >= thresh)[0]
+	thresh_inds = np.where(traces_arr[responsive_cell_idx, :] >= thresh)[0]
 	thresh_inds = thresh_inds - 6
-	thresh_vals = traces_arr[responsive_cell_id][thresh_inds]
+	thresh_vals = traces_arr[responsive_cell_idx][thresh_inds]
 	thresh_images = images_arr[thresh_inds]
 	n_images = len(np.unique(thresh_images))
 	img_stack = np.empty((thresh_images.shape[0], images[0, :, :].shape[0], images[0, :, :].shape[1]))
@@ -63,8 +88,10 @@ def get_calcium_triggered_image_stack(cell_specimen_id, responsive_cell_id, ns, 
 	return cell_idx, pref_scene, img_stack, thresh_vals, n_images, condition_mean, t, t_int, t_int_ref
 
 def mean_image(img_stack,weights=None):
-	"""Compute the mean image of an image stack, which is a 3 dimensional ndarray; the first index is the image index and the other two are pixels.
-If weights are supplied, takes the weighted average. Returns a single image which is the (weighted) mean."""
+	"""Compute the mean image of an image stack, which is a 3 dimensional ndarray; 
+         the first index of img_stack is the image index and the other two are width and height of the image in pixels.
+         If weights are supplied, takes the weighted average. Weights are the values of dF/F when the cell responded to the corresopnding image
+         Returns a single image which is the (weighted) mean."""
 	if weights is None:
 		return np.mean(img_stack,axis=0)
 	else:
@@ -72,8 +99,10 @@ If weights are supplied, takes the weighted average. Returns a single image whic
 
 def plot_ns_summary(cell_specimen_id, responsive_cell_id, ns, images, frames_arr, images_arr, traces_arr, thresh=0.5,
 					weighted=False, save_dir=None):
-	# TODO documentation
-	cell_idx, pref_scene, img_stack, thresh_vals, n_images, condition_mean, t, t_int, t_int_ref\
+	""" For a given cell, plot a summary figure containing the mean response to the preferred condition, the preferred image,
+         the mean response to all conditions, and the (weighted) mean of all images that were present prior to a response. 
+         """
+	cell_idx, pref_scene, img_stack, thresh_vals, n_images, condition_mean, t, t_int, t_int_ref
 		= get_calcium_triggered_image_stack(cell_specimen_id, responsive_cell_id, ns, images, images_arr,traces_arr,thresh)
 	if weighted:
 		mean_img = mean_image(img_stack, weights=thresh_vals)
@@ -120,13 +149,12 @@ def plot_ns_summary(cell_specimen_id, responsive_cell_id, ns, images, frames_arr
 
 def save_matrix_as_image(m, filename, save_path='', file_extension='png', color_map='gray'):
 	"""Saves the given matrix as an image file without axes or excess space around it.
-
-Input:
-	m : a 2-dimensional ndarray
-	filename : string for the name of the output image
-	save_path : where to save the image. By default this is python's current working directory (see os.getcwd())
-	file_extension : what format to save the image. Default is png
-	color_map : color scheme for the output image. Default is 'gray'"""
+        Input:
+        	m : a 2-dimensional ndarray
+        	filename : string for the name of the output image
+        	save_path : where to save the image. By default this is python's current working directory (see os.getcwd())
+        	file_extension : what format to save the image. Default is png
+        	color_map : color scheme for the output image. Default is 'gray'"""
 	fig = plt.figure(frameon=False)
 	ax = plt.Axes(fig, [0., 0., 1., 1.])
 	ax.set_axis_off()
@@ -135,7 +163,8 @@ Input:
 	fig.savefig(os.path.join(save_path,filename + file_extension))
 
 def gaussian_blur(img,sigma=19.6):
-	"""Applies a gaussian blur to given image and returns the result. By default, sigma is 19.6, which is roughly equal, in pixels, to 2 degrees of the mouse's visual field (ignoring the warping caused by using a flat screen)"""
+	"""Applies a gaussian blur to given image and returns the result. 
+         By default, sigma is 19.6, which is roughly equal, in pixels, to 2 degrees of the mouse's visual field (ignoring the warping from spherical correction)"""
 	return gaussian_filter(img,sigma)
 #
 # def plot_mean_image(cell_specimen_id,ns,images,images_arr,traces_arr,thresh=0.3,weighted=False):
