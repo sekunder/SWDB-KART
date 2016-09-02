@@ -17,11 +17,11 @@ from allensdk.core.brain_observatory_cache import BrainObservatoryCache
 # 	drive_path= 'd:'
 
 def BOC_init(stimuli_to_use={
-	'drifting_gratings',
-	'locally_sparse_noise',
-	'spontaneous',
-	'static_gratings'
-},
+			'drifting_gratings',
+			'locally_sparse_noise',
+			'spontaneous',
+			'static_gratings'
+		},
 		selectivity_csv_filename='image_selectivity_dataframe.csv',
 		areas={
 			'VISp'
@@ -124,7 +124,7 @@ def get_container_id(cell_specimen_id, selectivity_S_df=None):
 
 def get_session_id(exp_container_id, letter, boc=None):
     """This function takes a container id and returns the session id for letter = A,B, or C.""" 
-    if boc==None:
+    if boc is None:
         boc,_,_ = BOC_init()
     sessiontype=['three_session_'+str(letter)]
     session_data=pd.DataFrame(boc.get_ophys_experiments(experiment_container_ids=[exp_container_id], session_types=sessiontype))
