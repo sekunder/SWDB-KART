@@ -5,8 +5,8 @@ from scipy import fftpack
 
 
 
-def fourier_transform(image):
-	"""Shifts the supplied image so its mean intensity is 0, then computes the fourier transform.
+def log_fourier_transform(image):
+	"""Shifts the supplied image so its mean intensity is 0, then computes the log of the absolute value of the fourier transform.
 	Input:
 		:numpy.ndarray image : the image to transform
 	Output:
@@ -35,10 +35,19 @@ def fourier_transform(image):
 	# 	plt.ylabel('Power Spectrum')
 	# return log_image, fft_image, power_spectrum
 
-def image_orientation(image,fraction_of_peak=0.05):
+def image_orientation(image,fraction_of_peak=0.05,degrees=True):
 	"""computes an image's 'orientation' according to the following absurd metric:
-	Computes the log of the fourier transform of the image, then finds values greater than a given threshold, then fits a line to those points, and computes its slope."""
-	shifted_img, fft_img = fourier_transform(image)
+	Computes the fourier transform of the image, then finds values greater than a given threshold, then fits a line to those points, and computes its slope.
+
+	Input:
+		image : 2-dimensional ndarray
+		fraction_of_peak : Values below fraction_of_peak * np.max(np.abs(fftpack.fft2(shifted_image))) are ignored. Default is 0.05
+		degrees : if true, convert output to degrees.
+		"""
+	# compute
+	shifted_img = image - np.mean(image[:])
+	fft_img = fftpack.fft2(shifted_img)
+	fft_img = np.abs(fftpack.fftshift(fft_img))
 	(M,N) = fft_img.shape
 	#get indices greater than threshold
 	theta = fraction_of_peak * np.max(fft_img)
@@ -50,4 +59,6 @@ def image_orientation(image,fraction_of_peak=0.05):
 	m,_ = np.polyfit(x, y, 1)
 	#get orientation = arctan(slope)
 	ori = np.arccos(1 / (m ** 2 + 1))
+	if degrees:
+		ori *= 180/np.pi
 	return ori
