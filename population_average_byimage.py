@@ -118,9 +118,9 @@ for i in range(len(grand_mean)):
 targeted_structures = boc.get_all_targeted_structures()
 #targeted_structure=targeted_structures[3]     
 expt_cont_list = pd.DataFrame(boc.get_experiment_containers())
-expt_cont_ids=[511511015, 511510733]
+#expt_cont_ids=[511511015, 511510733]
 
-mean_bystructure=[]
+#mean_bystructure=[]
 all_sorted_img_responses=[]
 all_bycell_mean=[]
 for struct in targeted_structures:
@@ -128,7 +128,6 @@ for struct in targeted_structures:
     expt_cont_ids=expt_cont_VISlist['id'].unique()
     
     mean_by_container=[] 
-    all_by_cell_mean=[]
     sorted_img_responses=[]
     cell_means_byimage=[]
     for cont_id in expt_cont_ids:
@@ -138,26 +137,27 @@ for struct in targeted_structures:
         mean_sweep_response_nd = mean_sweep_response.values 
         #mean_perstim=[] 
         img_responses=[]
-        bycell_mean=np.arange(119, dtype='float')   
+        bycell_mean=[]  
         all_img_data=[]
         img_ids = sorted(stim_table_ns['frame'].unique())
         
         for stim_num in img_ids:
             img_idx=stim_table_ns['frame']==stim_num
-            #img_responses.append(all_img_data)
-            bycell_mean[stim_num+1]=np.mean(all_img_data, axis=0).tolist()
+            all_img_data=mean_sweep_response[img_idx]
+            img_responses.append(all_img_data)
+            bycell_mean.append(np.mean(all_img_data, axis=0).tolist())
             #bycell_mean[img_idx]=np.mean(all_img_data, axis=0)
             #bycell_mean
             all_img_data.append(mean_sweep_response[img_idx])
-            print('stim num: ', stim_num)
+            #print('stim num: ', stim_num)
         print('container id: ', cont_id)
-        #sorted_img_responses.append(img_responses)
+        sorted_img_responses.append(img_responses)
         cell_means_byimage.append(bycell_mean)
                 
         #mean_by_container.append(mean_perstim)    
     all_sorted_img_responses.append(sorted_img_responses)
     all_bycell_mean.append(cell_means_byimage)
-    mean_bystructure.append(mean_by_container)
+    #mean_bystructure.append(mean_by_container)
 
     
 #do some statistics
