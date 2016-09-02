@@ -49,5 +49,5 @@ def image_orientation(image,fraction_of_peak=0.05):
 	#find slope of best fit line
 	m,_ = np.polyfit(x, y, 1)
 	#get orientation = arctan(slope)
-	ori = np.arccos(1/(m^2 + 1))
+	ori = np.arccos(1 / (m ** 2 + 1))
 	return ori
