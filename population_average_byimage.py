@@ -118,7 +118,7 @@ for i in range(len(grand_mean)):
 targeted_structures = boc.get_all_targeted_structures()
 #targeted_structure=targeted_structures[3]     
 expt_cont_list = pd.DataFrame(boc.get_experiment_containers())
-#expt_cont_ids=[511511015, 511510733]
+expt_cont_ids=[511511015, 511510733]
 
 mean_bystructure=[]
 all_sorted_img_responses=[]
@@ -133,30 +133,31 @@ for struct in targeted_structures:
     cell_means_byimage=[]
     for cont_id in expt_cont_ids:
         session_id, session_data=get_session_id(cont_id, 'B', boc=boc)
-        response, mean_sweep_response, sweep_response, stim_table_ns = open_h5_file_sessionID(session_id, 'd:', 'B') 
+        _, mean_sweep_response, _, stim_table_ns = open_h5_file_sessionID(session_id, 'd:', 'B') 
         
         mean_sweep_response_nd = mean_sweep_response.values 
-        mean_perstim=[] 
+        #mean_perstim=[] 
         img_responses=[]
+        bycell_mean=np.arange(119, dtype='float')   
+        all_img_data=[]
         img_ids = sorted(stim_table_ns['frame'].unique())
         
         for stim_num in img_ids:
             img_idx=stim_table_ns['frame']==stim_num
-            all_img_data=mean_sweep_response[img_idx]
-            bycell_mean=all_img_data.mean()
-            img_responses.append(all_img_data)
-            
-            #by_mean=small_mean.mean()
+            #img_responses.append(all_img_data)
+            bycell_mean[stim_num+1]=np.mean(all_img_data, axis=0).tolist()
+            #bycell_mean[img_idx]=np.mean(all_img_data, axis=0)
+            #bycell_mean
+            all_img_data.append(mean_sweep_response[img_idx])
+            print('stim num: ', stim_num)
         print('container id: ', cont_id)
-        sorted_img_responses.append(img_responses)
+        #sorted_img_responses.append(img_responses)
         cell_means_byimage.append(bycell_mean)
-        mean_by_container.append(mean_perstim)    
-    mean_bystructure.append(mean_by_container)
+                
+        #mean_by_container.append(mean_perstim)    
     all_sorted_img_responses.append(sorted_img_responses)
     all_bycell_mean.append(cell_means_byimage)
-
-
-
+    mean_bystructure.append(mean_by_container)
 
     
 #do some statistics
