@@ -27,6 +27,7 @@ def fourier_transform(image):
 	return log_image, fft_image, power_spectrum
 
 def image_orientation(image):
-	"""computes an image's 'orientation' according to [TODO: describe metric]"""
+	"""computes an image's 'orientation' according to [TODO: describe metric. Will involve computing FFT of image]"""
 	# TODO what goes here?
+
 	return 1.0

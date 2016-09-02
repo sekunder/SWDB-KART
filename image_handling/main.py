@@ -2,6 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage.filters import gaussian_filter
+from scipy import misc
 
 def get_responsive_cells(ns,thresh=0.5):
 	"""Return cells from the given NS object that have mean response to preferred condition greater than some threshold"""
@@ -166,6 +167,11 @@ def gaussian_blur(img,sigma=19.6):
 	"""Applies a gaussian blur to given image and returns the result. 
          By default, sigma is 19.6, which is roughly equal, in pixels, to 2 degrees of the mouse's visual field (ignoring the warping from spherical correction)"""
 	return gaussian_filter(img,sigma)
+
+def load_image_from_file(filename):
+	image = misc.imread(filename)
+	return image
+
 #
 # def plot_mean_image(cell_specimen_id,ns,images,images_arr,traces_arr,thresh=0.3,weighted=False):
 # 	# cell_idx = np.where(ns.cell_id==cell_specimen_id)[0][0]
