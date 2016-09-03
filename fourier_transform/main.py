@@ -18,7 +18,7 @@ def log_fourier_transform(image):
 			See scipy.fftpack.fft2 and scipy.fftpack.fftshift"""
 	mean_shifted_image = image - np.mean(image[:])
 	shifted_fft_raw_image = fftpack.fftshift(fftpack.fft2(mean_shifted_image))
-	log_fft_image =  np.log10(np.abs(shifted_fft_raw_image))
+	log_fft_image =  np.log10(np.abs(shifted_fft_raw_image) + 1)
 	# F1 = fftpack.fft2(image - np.mean(image[:]))  # shift them quadrants around so dat low spatial frequencies are da center of da 2D fourier transformed image.
 	# F2 = fftpack.fftshift(F1)  # Calculatin' a 2D power spectrum
 	# Calculate the azimuthally averaged 1D power spectrum
