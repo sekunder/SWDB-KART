@@ -13,11 +13,11 @@ def log_fourier_transform(image):
 	Input:
 		:numpy.ndarray image : the image to transform
 	Output:
-		:numpy.ndarray shifted_image : the image with mean shifted to 0
+		:numpy.ndarray mean_shifted_image : the image with mean shifted to 0
 		:numpy.ndarray fft_image : The image, passed through the following transformations (in order): shift mean to 0, FFT, FFTshift absolute value, log10.
 			See scipy.fftpack.fft2 and scipy.fftpack.fftshift"""
-	shifted_image = image - np.mean(image[:])
-	shifted_fft_raw_image = fftpack.fftshift(fftpack.fft2(shifted_image))
+	mean_shifted_image = image - np.mean(image[:])
+	shifted_fft_raw_image = fftpack.fftshift(fftpack.fft2(mean_shifted_image))
 	log_fft_image =  np.log10(np.abs(shifted_fft_raw_image))
 	# F1 = fftpack.fft2(image - np.mean(image[:]))  # shift them quadrants around so dat low spatial frequencies are da center of da 2D fourier transformed image.
 	# F2 = fftpack.fftshift(F1)  # Calculatin' a 2D power spectrum
@@ -38,7 +38,7 @@ def log_fourier_transform(image):
 	# 	plt.xlabel('Spatial Frequency')
 	# 	plt.ylabel('Power Spectrum')
 	# return log_image, fft_image, power_spectrum
-	return shifted_image, log_fft_image#, psd1D
+	return mean_shifted_image, log_fft_image#, psd1D
 
 def radial_image_intensity(image, x_0, y_0, r, theta=(0.0, np.pi / 4, np.pi / 2, 3 * np.pi / 4, np.pi, 5 * np.pi / 4, 3 * np.pi / 2, 7 * np.pi / 4), num_interp_points=None):
 	"""returns the image's 'radial intensity' around the given point, to a distance of r, for each angle in the iterable theta.
@@ -90,8 +90,9 @@ def interpolated_pixel_values(image, x_0, y_0, x_1, y_1, num_steps=None, ord=1):
 	dx = (x_1 - x_0)/num_steps
 	dy = (y_1 - y_0)/num_steps
 	ds = np.hypot(dx,dy)
-	x_range = np.arange(x_0,x_1,dx)
-	y_range = np.arange(y_0,y_1,dy)
+	step_range = np.arange(0,num_steps)
+	x_range = x_0 + step_range * dx
+	y_range = y_0 + step_range * dy
 	pixel_values = map_coordinates(image, np.vstack((x_range, y_range)),order=ord)
 	# (Delta_x, Delta_y) = (y_1 - y_0, x_1 - x_0)
 	# distance = np.hypot(np.abs(Delta_x), np.abs(Delta_y))
