@@ -1,7 +1,9 @@
 import numpy as np
 # import matplotlib.pyplot as plt
 from scipy import fftpack
-# import radialProfile
+from scipy.interpolate import RectBivariateSpline as RBS
+from scipy.interpolate import interp2d
+import radialProfile
 
 
 
@@ -14,12 +16,13 @@ def log_fourier_transform(image):
 		:numpy.ndarray fft_image : The image, passed through the following transformations (in order): shift mean to 0, FFT, FFTshift absolute value, log10.
 			See scipy.fftpack.fft2 and scipy.fftpack.fftshift"""
 	shifted_image = image - np.mean(image[:])
-	transformed_image =  np.log10(np.abs(fftpack.fftshift(fftpack.fft2(shifted_image))))
-	return shifted_image, transformed_image
+	shifted_fft_raw_image = fftpack.fftshift(fftpack.fft2(shifted_image))
+	log_fft_image =  np.log10(np.abs(shifted_fft_raw_image))
 	# F1 = fftpack.fft2(image - np.mean(image[:]))  # shift them quadrants around so dat low spatial frequencies are da center of da 2D fourier transformed image.
 	# F2 = fftpack.fftshift(F1)  # Calculatin' a 2D power spectrum
-	# psd2D = np.abs(F2) ** 2  # Calculate the azimuthally averaged 1D power spectrum
-	# # psd1D = radialProfile.azimuthalAverage(psd2D, center=[459, 587])
+	# Calculate the azimuthally averaged 1D power spectrum
+	# psd2D = np.abs(shifted_fft_raw_image) ** 2
+	# psd1D = radialProfile.azimuthalAverage(psd2D)
 	# log_image = np.log10(image + 1)
 	# fft_image = np.log10(psd2D)
 	# power_spectrum = radialProfile.azimuthalAverage(psd2D, center=[459, 587])
@@ -34,6 +37,70 @@ def log_fourier_transform(image):
 	# 	plt.xlabel('Spatial Frequency')
 	# 	plt.ylabel('Power Spectrum')
 	# return log_image, fft_image, power_spectrum
+	return shifted_image, log_fft_image#, psd1D
+
+def radial_image_intensity(image, x_0, y_0, r, theta=(0.0, np.pi / 4, np.pi / 2, 3 * np.pi / 4, np.pi, 5 * np.pi / 4, 3 * np.pi / 2, 7 * np.pi / 4), num_interp_points=None):
+	"""returns the image's 'radial intensity' around the given point, to a distance of r, for each angle in the iterable theta.
+	Input:
+		image, x, y, r, theta
+	Output:
+		theta : the input theta, or the default of 45 degree increments from 0 to 180 (inclusive)
+		intensity : the intensity in the corresponding direction. The idea is you can just say plot(theta, intensity) and get something useful."""
+	intensity = [image_line_segment_intensity(image, x_0, y_0, x_0 + r * np.cos(t), y_0 + np.sin(t), num_steps=num_interp_points) for t in theta]
+	return theta, intensity
+
+
+def image_line_segment_intensity(image, x_0, y_0, x_1, y_1, num_steps=None):
+	"""computes the 'mean intensity' of the image along the line segment from (x0,y0) to (x1, y1).
+	This is defined as 1/r times the sum of the pixel intensities on the interpolated line between the two endpoints (inclusive)
+
+	Input:
+		image : ndarray image
+		x0, y0 : the (pixel) coordinates of the start point
+		x1, y1 : the (pixel) coordinates of the end point
+
+	Output:
+		mean intensity
+
+	Note:
+		This is undoubtedly going to be rather crude, because we are interpolating from pixel to pixel. Time constraints being what they are, this is the best we're gonna get."""
+	r = np.hypot(np.abs(x_0 - x_1), np.abs(y_0 - y_1))
+	int_pixels,ds = interpolated_pixels(image, x_0, y_0, x_1, y_1, num_steps=num_steps)
+	total_intensity =  np.sum(ds * int_pixels)
+	# pretend we have an iterable collection called interpolated_pixels
+	# for pixel in int_pixels:
+	# 	total_intensity += image(pixel[0],pixel[1])
+	return float(total_intensity) / r
+
+
+def interpolated_pixels(image, x_0, y_0, x_1, y_1, num_steps=None):
+	"""returns the pixel values along the interpolated line between the (pixel) coordinates in the given image, using "floor" interpolation.
+	Input:
+		image : image as ndarray
+		x_0, y_0 : start coordinates
+		x_1, y_1 : end coordinates
+		num_steps : number of sample points to take in the middle. By default, this is the ceiling of the distance between the start and end point
+	Output:
+		pixel_values : the image intensity at each sample point
+		ds : the step size, for taking Riemann sums
+		"""
+	(Delta_x, Delta_y) = (y_1 - y_0, x_1 - x_0)
+	distance = np.hypot(np.abs(Delta_x), np.abs(Delta_y))
+	if not num_steps:
+		num_steps = np.ceil(distance)
+	# dx,dy = Delta_x/float(num_steps), Delta_y/float(num_steps)
+	ds = float(distance)/float(num_steps)
+	# x = np.arange(image.shape[1])
+	# y = np.arange(image.shape[0])
+	# if not interpolator:
+	# 	interpolator = interp2d(x, y, image)
+
+	# extract values on line from x_0,y_0 to x_1,y_1
+	xvalues = np.floor(np.linspace(x_0, x_1, num_steps))
+	yvalues = np.floor(np.linspace(y_0, y_1, num_steps))
+	pixel_values = image[xvalues.astype(np.int),yvalues.astype(np.int)]
+	return pixel_values, ds
+
 
 def image_orientation(image,fraction_of_peak=0.05,degrees=True):
 	"""computes an image's 'orientation' according to the following absurd metric:
