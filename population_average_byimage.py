@@ -159,5 +159,7 @@ for struct in targeted_structures:
     all_bycell_mean.append(cell_means_byimage)
     #mean_bystructure.append(mean_by_container)
 
-    
+#save
+raw_population_MSR = [{'area':area, 'SortedImgReponses':np.asarray(tuple(A)), 'mean_bycell_perimg':np.asarray(tuple(B))} for area, A, B in zip(targeted_structures, all_sorted_img_responses, all_bycell_mean)]
+np.save('raw_population_MSR.csv', raw_population_MSR)    
 #do some statistics
