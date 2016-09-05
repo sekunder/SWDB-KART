@@ -100,3 +100,30 @@ def gaussian_blur(img,sigma=19.6):
 	"""Applies a gaussian blur to given image and returns the result. 
          By default, sigma is 19.6, which is roughly equal, in pixels, to 2 degrees of the mouse's visual field (ignoring the warping from spherical correction)"""
 	return gaussian_filter(img,sigma)
+
+# A start on the algorithm described in the notes for interpolated_pixel_values
+# def image_line_segment_integral(image, x_0, y_0, x_1, y_1):
+# 	"""computes the integral over the line segment from (x_0,y_0) to (x_1,y_1) of the piecewise-constant function defined by image."""
+# 	steep = np.abs(y_1 - y_0) > np.abs(x_1 - x_0)
+# 	m = (y_1 - y_0) / (x_1 - x_0)
+# 	b = y_0 / (m * x_0)
+# 	x_asc = x_1 >= x_0; y_asc = y_1 >= y_0
+# 	if steep:
+# 		if y_asc:
+# 			y_range = range(np.ceil(y_0),np.floor(y_1),1)
+# 			if y_0 != np.ceil(y_0):
+# 				y_range.insert(0,y_0)
+# 			if y_1 != np.floor(y_1):
+# 				y_range.append(y_1)
+# 		else:
+# 			y_range = range(np.floor(y_0),np.ceil(y_1),-1)
+# 			if y_0 != np.floor(y_0):
+# 				y_range.insert(0,y_0)
+# 			if y_1 != np.ceil(y_1)
+# 				y_range.append(y_1)
+# 		y_arr = np.asarray(y_range)
+# 		x_arr = (y_arr - b)/m
+#
+# 		intensities = image[x_arr, y_arr]
+# 	else:
+# 		pass
