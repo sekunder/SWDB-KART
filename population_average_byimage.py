@@ -4,11 +4,11 @@ Created on Wed Aug 31 16:12:32 2016
 
 @author: ttruszko
 
-This script will generate the figure needed for generating the population response figure.
+This script will generate the analysis needed for generating the population response figure.
 
 figure=average response of a whole experiment container to each image.
 Repeat for each area.
-Quantify how??
+
 generate average pop response for overlay.
 """
 
@@ -159,7 +159,7 @@ for struct in targeted_structures:
     all_bycell_mean.append(cell_means_byimage)
     #mean_bystructure.append(mean_by_container)
 
-#save
+#save. But this saves it in a weird format that kinda sucks. 
 raw_population_MSR = [{'area':area, 'SortedImgReponses':np.asarray(tuple(A)), 'mean_bycell_perimg':np.asarray(tuple(B))} for area, A, B in zip(targeted_structures, all_sorted_img_responses, all_bycell_mean)]
 np.save('raw_population_MSR.csv', raw_population_MSR)    
 #do some statistics
